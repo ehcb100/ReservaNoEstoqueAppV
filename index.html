@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#020914">
+<title>Registro de Comandas • Papelaria</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">COMANDAS</div>
+    <nav>
+      <button class="nav active" data-view="home">Início</button>
+      <button class="nav" data-view="new">Registrar Comanda</button>
+      <button class="nav" data-view="orders">Todas as Comandas</button>
+      <button class="nav" data-view="production">Produção</button>
+      <button class="nav" data-view="alerts">Alertas</button>
+      <button class="nav" data-view="search">Pesquisar</button>
+    </nav>
+    <div class="side-bottom">
+      <span class="online"></span> SISTEMA ONLINE
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero panel">
+      <div>
+        <div class="mini-title">PAPELARIA • SISTEMA DE COMANDAS</div>
+        <h1 id="title">REGISTRO DE COMANDAS</h1>
+        <p>Um painel para registrar serviços, pagamentos e acompanhar tudo o que precisa ser produzido.</p>
+      </div>
+      <div class="clock" id="clock">--:--:--</div>
+    </header>
+
+    <section id="home" class="view">
+      <div class="stats">
+        <div class="stat"><span>TOTAL DE COMANDAS</span><strong id="sTotal">0</strong></div>
+        <div class="stat"><span>EM PRODUÇÃO</span><strong id="sProduction">0</strong></div>
+        <div class="stat danger"><span>ALERTAS ATIVOS</span><strong id="sAlerts">0</strong></div>
+        <div class="stat"><span>CONCLUÍDAS</span><strong id="sDone">0</strong></div>
+      </div>
+
+      <div class="panel tools">
+        <h2>FERRAMENTAS</h2>
+        <div class="tool-row">
+          <button class="btn" data-go="new">+ Nova Comanda</button>
+          <button class="btn" data-go="production">Fila de Produção</button>
+          <button class="btn" data-go="alerts">🔔 Ver Alertas</button>
+          <button class="btn ghost" id="exportCsv">Exportar CSV</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-top"><h2>ÚLTIMAS COMANDAS REGISTRADAS</h2><button class="link-btn" data-go="orders">VER TODAS</button></div>
+        <div id="homeTable"></div>
+      </div>
+    </section>
+
+    <section id="new" class="view hidden">
+      <div class="panel">
+        <div class="section-top"><div><h2>REGISTRAR COMANDA</h2><p>Estrutura inspirada na planilha da papelaria.</p></div><strong class="number" id="nextNumber">#0001</strong></div>
+        <div class="form-grid two">
+          <label>Cliente<input id="customer" placeholder="Nome do cliente"></label>
+          <label>Telefone<input id="phone" placeholder="Opcional"></label>
+          <label>Tipo de cliente<select id="customerType"><option>Normal</option><option>Empresa</option><option>Professor</option><option>Aluno</option><option>Outro</option></select></label>
+          <label>Forma de pagamento<select id="payment"><option>Definir depois</option><option>Dinheiro</option><option>PIX</option><option>Débito</option><option>Crédito</option></select></label>
+        </div>
+
+        <div class="service-section"><h3>IMPRESSÕES</h3>
+          <div class="price-grid">
+            <label>A4 P/B — R$ 0,30<input class="service" data-name="A4 P/B" data-price="0.30" type="number" min="0" value="0"></label>
+            <label>A4 COL — R$ 1,50<input class="service" data-name="A4 Colorida" data-price="1.50" type="number" min="0" value="0"></label>
+            <label>A3 P/B — R$ 2,00<input class="service" data-name="A3 P/B" data-price="2" type="number" min="0" value="0"></label>
+            <label>A3 COL — R$ 4,00<input class="service" data-name="A3 Colorida" data-price="4" type="number" min="0" value="0"></label>
+          </div>
+        </div>
+
+        <div class="service-section"><h3>PLASTIFICAÇÃO • CORTES • FOTOGRAFIAS • OUTROS</h3>
+          <div class="price-grid">
+            <label>Plastificação A4 — R$ 8,00<input class="service" data-name="Plastificação A4" data-price="8" type="number" min="0" value="0"></label>
+            <label>Plastificação A3 — R$ 16,00<input class="service" data-name="Plastificação A3" data-price="16" type="number" min="0" value="0"></label>
+            <label>Corte Reto — R$ 0,20<input class="service" data-name="Corte Reto" data-price="0.20" type="number" min="0" value="0"></label>
+            <label>Corte Furado — R$ 1,00<input class="service" data-name="Corte Furado" data-price="1" type="number" min="0" value="0"></label>
+            <label>Foto 3×4 — R$ 10,00<input class="service" data-name="Foto 3x4" data-price="10" type="number" min="0" value="0"></label>
+            <label>Foto 10×15 — R$ 3,50<input class="service" data-name="Foto 10x15" data-price="3.5" type="number" min="0" value="0"></label>
+            <label>Foto 15×20 — R$ 7,00<input class="service" data-name="Foto 15x20" data-price="7" type="number" min="0" value="0"></label>
+            <label>Digitalização — R$ 2,00<input class="service" data-name="Digitalização" data-price="2" type="number" min="0" value="0"></label>
+            <label>Envelope — R$ 1,00<input class="service" data-name="Envelope" data-price="1" type="number" min="0" value="0"></label>
+          </div>
+        </div>
+
+        <div class="service-section"><h3>ENCADERNAÇÃO SIMPLES E WIRE-O</h3>
+          <div class="form-grid four">
+            <label>Tipo<select id="bindType"><option value="">Nenhum</option><option>Simples</option><option>Wire-o</option></select></label>
+            <label>Qtd. folhas<input id="bindSheets" type="number" min="0" value="0"></label>
+            <label>Qtd. encad.<input id="bindQty" type="number" min="0" value="0"></label>
+            <label>Preço unitário<input id="bindPrice" type="number" step="0.01" min="0" value="6"></label>
+          </div>
+        </div>
+
+        <div class="form-grid two">
+          <label>Valor recebido<input id="received" type="number" step="0.01" min="0" value="0"></label>
+          <label>Observações<textarea id="notes" placeholder="Detalhes da produção, páginas, capa, acabamento etc."></textarea></label>
+        </div>
+
+        <div class="checkout">
+          <div><span>TOTAL</span><strong id="total">R$ 0,00</strong></div>
+          <div><span>TROCO</span><strong id="change">R$ 0,00</strong></div>
+          <button class="btn big" id="create">CRIAR COMANDA</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="orders" class="view hidden"><div class="panel"><div class="section-top"><h2>TODAS AS COMANDAS</h2></div><div id="allTable"></div></div></section>
+    <section id="production" class="view hidden"><div class="panel"><div class="section-top"><div><h2>FILA DE PRODUÇÃO</h2><p>Somente comandas com pagamento confirmado.</p></div></div><div id="productionTable"></div></div></section>
+    <section id="alerts" class="view hidden"><div class="panel"><div class="section-top"><div><h2>🔔 CENTRAL DE ALERTAS</h2><p>O aviso repete a cada 20 minutos até a comanda ser concluída.</p></div></div><div id="alertTable"></div></div></section>
+    <section id="search" class="view hidden"><div class="panel"><div class="section-top"><h2>PESQUISAR</h2></div><input id="searchBox" class="search" placeholder="Digite nome, número ou serviço..."><div id="searchResults"></div></div></section>
+  </main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>
