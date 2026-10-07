@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#020914">
+<title>Comandas • Papelaria</title>
+
+<!--
+  SISTEMA DE COMANDAS - ARQUIVO ÚNICO
+  1) Para usar Firebase, preencha FIREBASE_CONFIG no final deste arquivo.
+  2) Sem Firebase configurado, o sistema funciona com localStorage neste navegador.
+  3) O PDF é gerado diretamente pelo botão "PDF / Relatório".
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#07101c;--panel:#0d1827;--panel2:#111f31;--line:#25364b;
+  --text:#f4f7fb;--muted:#91a0b4;--accent:#00e676;--accent2:#00b85c;
+  --danger:#ff4d67;--warning:#ffc107;
+}
+body{margin:0;background:linear-gradient(135deg,#020914,#0b1727);color:var(--text);
+font-family:Inter,Arial,sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:245px;background:#050c15;border-right:1px solid var(--line);padding:24px 16px;
+display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{font-weight:900;letter-spacing:2px;font-size:25px;margin:4px 10px 30px}
+nav{display:grid;gap:8px}
+.nav{border:1px solid transparent;background:transparent;color:#b9c5d4;text-align:left;
+padding:13px 14px;border-radius:10px}
+.nav:hover,.nav.active{background:#102033;color:#fff;border-color:#20364e}
+.side-bottom{margin-top:auto;color:#7e8da1;font-size:12px;padding:10px}
+.online{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:7px;box-shadow:0 0 10px var(--accent)}
+main{width:100%;padding:24px;max-width:1500px;margin:auto}
+.panel{background:rgba(13,24,39,.95);border:1px solid var(--line);border-radius:16px;padding:22px;
+box-shadow:0 10px 35px rgba(0,0,0,.16);margin-bottom:18px}
+.hero{display:flex;justify-content:space-between;align-items:center}
+.mini-title{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:1.4px}
+h1{font-size:30px;margin:8px 0}
+h2{font-size:18px;margin:0 0 15px}
+h3{font-size:13px;margin:0 0 13px;color:#c8d4e3}
+p{color:var(--muted);margin:5px 0}
+.clock{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stat span{display:block;color:var(--muted);font-size:11px;font-weight:800}
+.stat strong{font-size:28px;display:block;margin-top:8px}
+.stat.danger strong{color:#ff6a7d}
+.tools .tool-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{background:var(--accent);border:0;color:#021008;font-weight:900;padding:12px 16px;border-radius:10px}
+.btn:hover{background:#27f18b}
+.btn.ghost{background:#18283a;color:#dce7f3;border:1px solid var(--line)}
+.btn.danger{background:#5a1823;color:#ffb4bf}
+.btn.big{padding:15px 24px}
+.link-btn{border:0;background:none;color:var(--accent);font-weight:800}
+.section-top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:12px}
+.hidden{display:none!important}
+.form-grid{display:grid;gap:14px}
+.form-grid.two{grid-template-columns:repeat(2,1fr)}
+.form-grid.three{grid-template-columns:repeat(3,1fr)}
+.form-grid.four{grid-template-columns:repeat(4,1fr)}
+label{display:block;color:#b9c5d4;font-size:12px;font-weight:700}
+input,select,textarea{width:100%;margin-top:7px;background:#081321;color:#fff;border:1px solid #2a3c52;
+border-radius:9px;padding:11px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:85px;resize:vertical}
+.service-section{margin:20px 0;padding-top:18px;border-top:1px solid var(--line)}
+.price-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.price-grid label{background:#0a1523;padding:11px;border:1px solid #1e3045;border-radius:10px}
+.checkout{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.checkout>div{min-width:125px}
+.checkout span{display:block;color:var(--muted);font-size:11px}
+.checkout strong{font-size:21px}
+.number{color:var(--accent);font-size:22px}
+.search{margin-bottom:15px;font-size:16px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:850px}
+th,td{padding:11px 10px;border-bottom:1px solid #203146;text-align:left;font-size:12px}
+th{color:#8fa2b8;background:#0a1522;position:sticky;top:0}
+td{color:#e5ebf3}
+.badge{display:inline-block;border-radius:20px;padding:5px 8px;font-size:10px;font-weight:900}
+.badge.wait{background:#352d09;color:#ffe082}.badge.prod{background:#08394a;color:#75dfff}
+.badge.done{background:#093822;color:#72ffad}.badge.alert{background:#451523;color:#ff9eac}
+.empty{padding:25px;text-align:center;color:var(--muted)}
+.toast{position:fixed;right:22px;bottom:22px;background:#102437;color:#fff;border:1px solid #2e4863;
+padding:13px 17px;border-radius:10px;box-shadow:0 12px 30px #0008;z-index:20}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.filters>*{max-width:230px}
+@media(max-width:900px){
+ .sidebar{width:190px}.stats{grid-template-columns:repeat(2,1fr)}
+ .price-grid{grid-template-columns:repeat(2,1fr)}.form-grid.four,.form-grid.three{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:650px){
+ .layout{display:block}.sidebar{width:100%;height:auto;position:relative}.side-bottom{display:none}
+ nav{grid-template-columns:repeat(2,1fr)}main{padding:12px}.hero{display:block}.clock{margin-top:15px}
+ .stats,.form-grid.two,.form-grid.three,.form-grid.four,.price-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">COMANDAS</div>
+  <nav>
+    <button class="nav active" data-view="home">Início</button>
+    <button class="nav" data-view="new">Registrar Comanda</button>
+    <button class="nav" data-view="orders">Todas as Comandas</button>
+    <button class="nav" data-view="production">Produção</button>
+    <button class="nav" data-view="alerts">Alertas</button>
+    <button class="nav" data-view="search">Pesquisar</button>
+    <button class="nav" data-view="reports">Relatórios / PDF</button>
+  </nav>
+  <div class="side-bottom"><span class="online"></span><span id="connectionText">SISTEMA LOCAL</span></div>
+</aside>
+
+<main>
+<header class="hero panel">
+  <div>
+    <div class="mini-title">PAPELARIA • SISTEMA DE COMANDAS</div>
+    <h1 id="title">REGISTRO DE COMANDAS</h1>
+    <p>Registre serviços, pagamentos, produção e gere relatórios em PDF.</p>
+  </div>
+  <div class="clock" id="clock">--:--:--</div>
+</header>
+
+<section id="home" class="view">
+  <div class="stats">
+    <div class="stat"><span>TOTAL DE COMANDAS</span><strong id="sTotal">0</strong></div>
+    <div class="stat"><span>EM PRODUÇÃO</span><strong id="sProduction">0</strong></div>
+    <div class="stat danger"><span>ALERTAS ATIVOS</span><strong id="sAlerts">0</strong></div>
+    <div class="stat"><span>CONCLUÍDAS</span><strong id="sDone">0</strong></div>
+  </div>
+  <div class="panel tools">
+    <h2>FERRAMENTAS</h2>
+    <div class="tool-row">
+      <button class="btn" data-go="new">+ Nova Comanda</button>
+      <button class="btn" data-go="production">Fila de Produção</button>
+      <button class="btn ghost" id="pdfToday">PDF de Hoje</button>
+      <button class="btn ghost" id="exportCsv">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="section-top"><h2>ÚLTIMAS COMANDAS</h2><button class="link-btn" data-go="orders">VER TODAS</button></div>
+    <div id="homeTable"></div>
+  </div>
+</section>
+
+<section id="new" class="view hidden">
+<div class="panel">
+ <div class="section-top"><div><h2>REGISTRAR COMANDA</h2><p>Nome, trabalho, horário e data ficam registrados automaticamente.</p></div><strong class="number" id="nextNumber">#0001</strong></div>
+
+ <div class="form-grid three">
+   <label>Nome do cliente<input id="customer" placeholder="Nome do cliente"></label>
+   <label>Responsável / funcionário<input id="employee" placeholder="Quem realizou o atendimento"></label>
+   <label>Telefone<input id="phone" placeholder="Opcional"></label>
+   <label>Categoria
+     <select id="customerType">
+       <option>Hospital / Clientes Geral</option>
+       <option>Professores e Alunos - Ensino</option>
+       <option>Demais Empresas - Terceirizados</option>
+       <option>Normal</option>
+     </select>
+   </label>
+   <label>Forma de pagamento<select id="payment"><option>Definir depois</option><option>Dinheiro</option><option>PIX</option><option>Débito</option><option>Crédito</option></select></label>
+ </div>
+
+ <div class="service-section"><h3>IMPRESSÕES</h3>
+  <div class="price-grid">
+   <label>A4 P/B — R$ 0,30<input class="service" data-name="A4 P/B" data-price="0.30" type="number" min="0" value="0"></label>
+   <label>A4 COLORIDA — R$ 1,50<input class="service" data-name="A4 Colorida" data-price="1.50" type="number" min="0" value="0"></label>
+   <label>A3 P/B — R$ 2,00<input class="service" data-name="A3 P/B" data-price="2" type="number" min="0" value="0"></label>
+   <label>A3 COLORIDA — R$ 4,00<input class="service" data-name="A3 Colorida" data-price="4" type="number" min="0" value="0"></label>
+  </div>
+ </div>
+
+ <div class="service-section"><h3>PLASTIFICAÇÃO • CORTES • FOTOGRAFIAS • OUTROS</h3>
+  <div class="price-grid">
+   <label>Plastificação A4 — R$ 8,00<input class="service" data-name="Plastificação A4" data-price="8" type="number" min="0" value="0"></label>
+   <label>Plastificação A3 — R$ 16,00<input class="service" data-name="Plastificação A3" data-price="16" type="number" min="0" value="0"></label>
+   <label>Corte Reto — R$ 0,20<input class="service" data-name="Corte Reto" data-price="0.20" type="number" min="0" value="0"></label>
+   <label>Corte Furado — R$ 1,00<input class="service" data-name="Corte Furado" data-price="1" type="number" min="0" value="0"></label>
+   <label>Foto 3×4 — R$ 10,00<input class="service" data-name="Foto 3x4" data-price="10" type="number" min="0" value="0"></label>
+   <label>Foto 10×15 — R$ 3,50<input class="service" data-name="Foto 10x15" data-price="3.5" type="number" min="0" value="0"></label>
+   <label>Foto 15×20 — R$ 7,00<input class="service" data-name="Foto 15x20" data-price="7" type="number" min="0" value="0"></label>
+   <label>Digitalização — R$ 2,00<input class="service" data-name="Digitalização" data-price="2" type="number" min="0" value="0"></label>
+   <label>Envelope — R$ 1,00<input class="service" data-name="Envelope" data-price="1" type="number" min="0" value="0"></label>
+  </div>
+ </div>
+
+ <div class="service-section"><h3>ENCADERNAÇÃO SIMPLES E WIRE-O</h3>
+  <div class="form-grid four">
+   <label>Tipo<select id="bindType"><option value="">Nenhum</option><option>Simples</option><option>Wire-o</option></select></label>
+   <label>Qtd. folhas<input id="bindSheets" type="number" min="0" value="0"></label>
+   <label>Qtd. encad.<input id="bindQty" type="number" min="0" value="0"></label>
+   <label>Preço unitário<input id="bindPrice" type="number" step="0.01" min="0" value="6"></label>
+  </div>
+ </div>
+
+ <div class="form-grid two">
+  <label>Valor recebido<input id="received" type="number" step="0.01" min="0" value="0"></label>
+  <label>Observações<textarea id="notes" placeholder="Detalhes da produção, páginas, capa, acabamento etc."></textarea></label>
+ </div>
+
+ <div class="checkout">
+  <div><span>TOTAL</span><strong id="total">R$ 0,00</strong></div>
+  <div><span>TROCO</span><strong id="change">R$ 0,00</strong></div>
+  <button class="btn big" id="create">CRIAR COMANDA</button>
+ </div>
+</div>
+</section>
+
+<section id="orders" class="view hidden"><div class="panel">
+ <div class="section-top"><h2>TODAS AS COMANDAS</h2><button class="btn ghost" id="pdfAll">GERAR PDF</button></div>
+ <div id="allTable"></div>
+</div></section>
+
+<section id="production" class="view hidden"><div class="panel">
+ <div class="section-top"><div><h2>FILA DE PRODUÇÃO</h2><p>Comandas pagas ou liberadas para produção.</p></div></div>
+ <div id="productionTable"></div>
+</div></section>
+
+<section id="alerts" class="view hidden"><div class="panel">
+ <div class="section-top"><div><h2>🔔 CENTRAL DE ALERTAS</h2><p>Comandas abertas há mais de 20 minutos aparecem aqui.</p></div></div>
+ <div id="alertTable"></div>
+</div></section>
+
+<section id="search" class="view hidden"><div class="panel">
+ <div class="section-top"><h2>PESQUISAR</h2></div>
+ <input id="searchBox" class="search" placeholder="Digite nome, número, trabalho ou categoria...">
+ <div id="searchResults"></div>
+</div></section>
+
+<section id="reports" class="view hidden"><div class="panel">
+ <div class="section-top"><div><h2>RELATÓRIO / PDF</h2><p>Relatório com nome, trabalho, data, horário, categoria, pagamento e valores.</p></div></div>
+ <div class="filters">
+   <label>Data inicial<input id="dateFrom" type="date"></label>
+   <label>Data final<input id="dateTo" type="date"></label>
+   <label>Categoria<select id="reportCategory"><option value="">Todas</option><option>Hospital / Clientes Geral</option><option>Professores e Alunos - Ensino</option><option>Demais Empresas - Terceirizados</option><option>Normal</option></select></label>
+ </div>
+ <div class="tool-row">
+   <button class="btn" id="generatePdf">GERAR PDF</button>
+   <button class="btn ghost" id="generateCsv">GERAR CSV</button>
+ </div>
+ <div id="reportPreview" style="margin-top:18px"></div>
+</div></section>
+
+</main>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script type="module">
+/* =========================================================
+   FIREBASE
+   Cole aqui a configuração do seu projeto Firebase.
+   O sistema funciona sozinho com localStorage enquanto
+   esta configuração estiver vazia.
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+let db = null;
+let firebaseAtivo = false;
+let unsubscribe = null;
+
+async function iniciarFirebase(){
+  if(!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) return;
+  try{
+    const {initializeApp} = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js");
+    const {getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc} =
+      await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = {firestore:getFirestore(app), collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc};
+    firebaseAtivo = true;
+    document.getElementById("connectionText").textContent = "FIREBASE ONLINE";
+    unsubscribe = db.onSnapshot(db.collection(db.firestore,"comandas"), snap=>{
+      comandas = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>
+        (b.createdAt||"").localeCompare(a.createdAt||""));
+      renderAll();
+    });
+  }catch(e){
+    console.error(e);
+    toast("Firebase não foi conectado. Sistema local ativado.");
+  }
+}
+
+let comandas = JSON.parse(localStorage.getItem("papelaria_comandas") || "[]");
+
+const $ = id => document.getElementById(id);
+const money = n => Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const now = () => new Date();
+const pad = n => String(n).padStart(2,"0");
+const dateBR = iso => {
+  if(!iso) return "";
+  const d=new Date(iso);
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+};
+const timeBR = iso => {
+  if(!iso) return "";
+  const d=new Date(iso);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+const esc = s => String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+
+function saveLocal(){
+  localStorage.setItem("papelaria_comandas",JSON.stringify(comandas));
+}
+function toast(msg){
+  $("toast").textContent=msg;
+  $("toast").classList.remove("hidden");
+  setTimeout(()=>$("toast").classList.add("hidden"),3000);
+}
+
+async function saveComanda(c){
+  if(firebaseAtivo){
+    const ref=await db.addDoc(db.collection(db.firestore,"comandas"),c);
+    return ref.id;
+  }
+  c.id=c.id||crypto.randomUUID();
+  comandas.unshift(c); saveLocal(); return c.id;
+}
+async function updateComanda(id,data){
+  if(firebaseAtivo){
+    await db.updateDoc(db.doc(db.firestore,"comandas",id),data);
+  }else{
+    const i=comandas.findIndex(c=>c.id===id);
+    if(i>=0) comandas[i]={...comandas[i],...data};
+    saveLocal(); renderAll();
+  }
+}
+async function deleteComanda(id){
+  if(!confirm("Excluir esta comanda?")) return;
+  if(firebaseAtivo) await db.deleteDoc(db.doc(db.firestore,"comandas",id));
+  else {comandas=comandas.filter(c=>c.id!==id);saveLocal();renderAll();}
+  toast("Comanda excluída.");
+}
+
+function nextNumber(){
+  const nums=comandas.map(c=>Number(c.number)||0);
+  return Math.max(0,...nums)+1;
+}
+
+function collectServices(){
+  const services=[];
+  document.querySelectorAll(".service").forEach(input=>{
+    const qty=Number(input.value||0);
+    if(qty>0) services.push({
+      name:input.dataset.name,qty,unit:Number(input.dataset.price),
+      total:qty*Number(input.dataset.price)
+    });
+  });
+  const bqty=Number($("bindQty").value||0);
+  const btype=$("bindType").value;
+  const bprice=Number($("bindPrice").value||0);
+  if(bqty>0 && btype) services.push({
+    name:`Encadernação ${btype}`,qty:bqty,unit:bprice,total:bqty*bprice,
+    sheets:Number($("bindSheets").value||0)
+  });
+  return services;
+}
+function calcTotal(){
+  return collectServices().reduce((s,x)=>s+x.total,0);
+}
+function updateTotal(){
+  const t=calcTotal(),r=Number($("received").value||0);
+  $("total").textContent=money(t);
+  $("change").textContent=money(Math.max(0,r-t));
+}
+document.addEventListener("input",e=>{
+  if(e.target.matches(".service,#bindQty,#bindPrice,#received,#bindSheets")) updateTotal();
+});
+
+async function createComanda(){
+  const customer=$("customer").value.trim();
+  const employee=$("employee").value.trim();
+  const services=collectServices();
+  if(!customer) return toast("Informe o nome do cliente.");
+  if(!services.length) return toast("Informe pelo menos um trabalho/serviço.");
+  const createdAt=new Date().toISOString();
+  const total=services.reduce((s,x)=>s+x.total,0);
+  const received=Number($("received").value||0);
+
+  const c={
+    number:nextNumber(),customer,employee,
+    phone:$("phone").value.trim(),
+    category:$("customerType").value,
+    payment:$("payment").value,
+    services,total,received,change:Math.max(0,received-total),
+    notes:$("notes").value.trim(),
+    status:"aguardando",createdAt,updatedAt:createdAt
+  };
+  await saveComanda(c);
+  toast(`Comanda #${String(c.number).padStart(4,"0")} criada.`);
+  resetForm();
+  go("orders");
+  if(!firebaseAtivo) renderAll();
+}
+
+function resetForm(){
+  ["customer","employee","phone","notes"].forEach(id=>$(id).value="");
+  $("payment").value="Definir depois";
+  $("customerType").selectedIndex=0;
+  document.querySelectorAll(".service").forEach(i=>i.value=0);
+  $("bindType").value="";$("bindSheets").value=0;$("bindQty").value=0;$("bindPrice").value=6;$("received").value=0;
+  $("nextNumber").textContent="#"+String(nextNumber()).padStart(4,"0");
+  updateTotal();
+}
+
+function statusBadge(s){
+  const map={aguardando:["wait","AGUARDANDO"],producao:["prod","EM PRODUÇÃO"],concluida:["done","CONCLUÍDA"]};
+  const [cl,t]=map[s]||map.aguardando;
+  return `<span class="badge ${cl}">${t}</span>`;
+}
+function serviceText(c){
+  return (c.services||[]).map(s=>`${esc(s.name)} (${s.qty})`).join("<br>");
+}
+function row(c,actions=true){
+  return `<tr>
+    <td>#${String(c.number).padStart(4,"0")}</td>
+    <td><b>${esc(c.customer)}</b><br><small>${esc(c.category||"")}</small></td>
+    <td>${serviceText(c)}</td>
+    <td>${dateBR(c.createdAt)}</td>
+    <td>${timeBR(c.createdAt)}</td>
+    <td>${money(c.total)}</td>
+    <td>${statusBadge(c.status)}</td>
+    ${actions?`<td>
+      ${c.status!=="concluida"?`<button class="btn ghost" data-status="${c.id}">${c.status==="aguardando"?"Produção":"Concluir"}</button>`:""}
+      <button class="btn danger" data-delete="${c.id}">Excluir</button>
+    </td>`:""}
+  </tr>`;
+}
+function table(list,actions=true){
+  if(!list.length) return `<div class="empty">Nenhuma comanda encontrada.</div>`;
+  return `<div class="table-wrap"><table><thead><tr>
+  <th>Nº</th><th>Nome / Categoria</th><th>Trabalho</th><th>Data</th><th>Horário</th><th>Total</th><th>Status</th>${actions?"<th>Ações</th>":""}
+  </tr></thead><tbody>${list.map(c=>row(c,actions)).join("")}</tbody></table></div>`;
+}
+
+function renderHome(){
+  $("sTotal").textContent=comandas.length;
+  $("sProduction").textContent=comandas.filter(c=>c.status==="producao").length;
+  $("sDone").textContent=comandas.filter(c=>c.status==="concluida").length;
+  $("sAlerts").textContent=comandas.filter(c=>c.status!=="concluida" && Date.now()-new Date(c.createdAt).getTime()>20*60000).length;
+  $("homeTable").innerHTML=table(comandas.slice(0,8));
+}
+function renderOrders(){ $("allTable").innerHTML=table(comandas); }
+function renderProduction(){ $("productionTable").innerHTML=table(comandas.filter(c=>c.status!=="concluida")); }
+function renderAlerts(){ $("alertTable").innerHTML=table(comandas.filter(c=>c.status!=="concluida" && Date.now()-new Date(c.createdAt).getTime()>20*60000)); }
+
+function renderSearch(){
+  const q=($("searchBox").value||"").toLowerCase().trim();
+  const list=!q?comandas:comandas.filter(c=>
+    JSON.stringify(c).toLowerCase().includes(q));
+  $("searchResults").innerHTML=table(list);
+}
+function renderReportPreview(){
+  const list=filteredReport();
+  const total=list.reduce((s,c)=>s+Number(c.total||0),0);
+  $("reportPreview").innerHTML=`<p><b>${list.length}</b> comandas selecionadas • <b>${money(total)}</b> total</p>${table(list,false)}`;
+}
+function filteredReport(){
+  const from=$("dateFrom").value, to=$("dateTo").value, cat=$("reportCategory").value;
+  return comandas.filter(c=>{
+    const d=c.createdAt?.slice(0,10);
+    return (!from||d>=from)&&(!to||d<=to)&&(!cat||c.category===cat);
+  });
+}
+function renderAll(){
+  renderHome();renderOrders();renderProduction();renderAlerts();renderSearch();renderReportPreview();
+  $("nextNumber").textContent="#"+String(nextNumber()).padStart(4,"0");
+}
+
+async function advanceStatus(id){
+  const c=comandas.find(x=>x.id===id); if(!c)return;
+  const status=c.status==="aguardando"?"producao":"concluida";
+  await updateComanda(id,{status,updatedAt:new Date().toISOString()});
+  toast(status==="concluida"?"Comanda concluída.":"Comanda enviada para produção.");
+}
+document.addEventListener("click",async e=>{
+  const status=e.target.closest("[data-status]");
+  const del=e.target.closest("[data-delete]");
+  if(status) await advanceStatus(status.dataset.status);
+  if(del) await deleteComanda(del.dataset.delete);
+});
+
+function go(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
+  $(view).classList.remove("hidden");
+  document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n.dataset.view===view));
+  renderAll();
+}
+document.querySelectorAll(".nav").forEach(n=>n.addEventListener("click",()=>go(n.dataset.view)));
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+
+$("create").addEventListener("click",createComanda);
+$("searchBox").addEventListener("input",renderSearch);
+["dateFrom","dateTo","reportCategory"].forEach(id=>$(id).addEventListener("change",renderReportPreview));
+
+function buildPdf(list,title="RELATÓRIO DE COMANDAS"){
+  if(!window.jspdf){toast("Biblioteca de PDF ainda não carregou. Tente novamente.");return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  const total=list.reduce((s,c)=>s+Number(c.total||0),0);
+  const generated=new Date();
+
+  doc.setFont("helvetica","bold");doc.setFontSize(18);doc.text(title,14,15);
+  doc.setFont("helvetica","normal");doc.setFontSize(9);
+  doc.text("PAPELARIA • RELATÓRIO DE SERVIÇOS",14,21);
+  doc.text(`Gerado em ${dateBR(generated.toISOString())} às ${timeBR(generated.toISOString())}`,14,27);
+  doc.text(`Comandas: ${list.length}    Total: ${money(total)}`,14,33);
+
+  const rows=[];
+  list.forEach(c=>{
+    const trabalhos=(c.services||[]).map(s=>`${s.name} x${s.qty}`).join(", ");
+    rows.push([
+      `#${String(c.number).padStart(4,"0")}`,
+      c.customer||"",
+      c.employee||"-",
+      trabalhos,
+      dateBR(c.createdAt),
+      timeBR(c.createdAt),
+      c.category||"",
+      c.payment||"",
+      money(c.total)
+    ]);
+  });
+
+  doc.autoTable({
+    startY:39,
+    head:[["Nº","NOME","RESPONSÁVEL","TRABALHO","DATA","HORÁRIO","CATEGORIA","PAGAMENTO","TOTAL"]],
+    body:rows,
+    theme:"grid",
+    styles:{fontSize:7,cellPadding:2},
+    headStyles:{fillColor:[10,25,38],textColor:255,fontStyle:"bold"},
+    columnStyles:{3:{cellWidth:55},6:{cellWidth:38}}
+  });
+
+  const y=(doc.lastAutoTable?.finalY||39)+9;
+  doc.setFont("helvetica","bold");doc.setFontSize(11);
+  doc.text(`TOTAL GERAL: ${money(total)}`,14,y);
+  doc.setFont("helvetica","normal");doc.setFontSize(8);
+  doc.text("Relatório gerado pelo Sistema de Comandas da Papelaria.",14,y+6);
+
+  doc.save(`relatorio-comandas-${new Date().toISOString().slice(0,10)}.pdf`);
+  toast("PDF gerado com sucesso.");
+}
+
+$("generatePdf").addEventListener("click",()=>{
+  const list=filteredReport();
+  if(!list.length)return toast("Não há comandas no período selecionado.");
+  buildPdf(list,"RELATÓRIO DE SERVIÇOS");
+});
+$("pdfAll").addEventListener("click",()=>buildPdf(comandas,"TODAS AS COMANDAS"));
+$("pdfToday").addEventListener("click",()=>{
+  const d=new Date().toISOString().slice(0,10);
+  const list=comandas.filter(c=>c.createdAt?.slice(0,10)===d);
+  if(!list.length)return toast("Nenhuma comanda registrada hoje.");
+  buildPdf(list,"RELATÓRIO DO DIA");
+});
+
+function csvEscape(v){return `"${String(v??"").replace(/"/g,'""')}"`}
+function exportCSV(list=comandas){
+  const head=["Número","Nome","Responsável","Trabalho","Data","Horário","Categoria","Pagamento","Total","Status"];
+  const lines=[head.map(csvEscape).join(";")];
+  list.forEach(c=>{
+    const work=(c.services||[]).map(s=>`${s.name} x${s.qty}`).join(" | ");
+    lines.push([
+      c.number,c.customer,c.employee,work,dateBR(c.createdAt),timeBR(c.createdAt),
+      c.category,c.payment,c.total,c.status
+    ].map(csvEscape).join(";"));
+  });
+  const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download=`comandas-${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  URL.revokeObjectURL(a.href);
+}
+$("exportCsv").addEventListener("click",()=>exportCSV());
+$("generateCsv").addEventListener("click",()=>exportCSV(filteredReport()));
+
+setInterval(()=>{
+  const d=new Date();
+  $("clock").textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  renderHome();renderAlerts();
+},1000);
+
+renderAll();
+iniciarFirebase();
+</script>
+</body>
+</html>
