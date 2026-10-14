@@ -1,4 +1,4 @@
-      
+
 name: Gerar APK Android
 
 on:
@@ -11,7 +11,7 @@ jobs:
   build:
     name: Compilar Reserva NoEstoque
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - name: Baixar repositorio
@@ -36,11 +36,28 @@ jobs:
           test -f package.json
           test -f capacitor.config.json || test -f capacitor.config.ts
 
+      - name: Preparar arquivos do site
+        run: |
+          mkdir -p www
+
+          cp index.html www/
+          cp app.js www/
+          cp style.css www/
+          cp manifest.json www/
+          cp service-worker.js www/
+          cp push-client.js www/
+          cp push-config.js www/
+          cp rowlet.png www/
+
+          echo "Arquivos do site preparados:"
+          ls -la www/
+
       - name: Preparar Android
         run: |
           if [ ! -d android ]; then
             npx cap add android
           fi
+
           npx cap sync android
 
       - name: Configurar Firebase
@@ -53,16 +70,68 @@ jobs:
           fi
 
           mkdir -p android/app
+
           printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" \
             | base64 --decode \
             > android/app/google-services.json
+
+          echo "Configuracao Firebase adicionada"
+
+      - name: Configurar Firebase no Gradle
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          gradle = Path("android/app/build.gradle")
+
+          if not gradle.exists():
+              raise SystemExit(
+                  "Arquivo android/app/build.gradle nao encontrado"
+              )
+
+          content = gradle.read_text()
+
+          plugin = "com.google.gms.google-services"
+
+          if plugin not in content:
+              content += (
+                  "\napply plugin: "
+                  "'com.google.gms.google-services'\n"
+              )
+              gradle.write_text(content)
+
+          root = Path("android/build.gradle")
+          content = root.read_text()
+
+          dependency = (
+              "classpath 'com.google.gms:"
+              "google-services:4.4.2'"
+          )
+
+          if dependency not in content:
+              marker = "dependencies {"
+
+              if marker not in content:
+                  raise SystemExit(
+                      "Bloco dependencies nao encontrado"
+                  )
+
+              content = content.replace(
+                  marker,
+                  marker + "\n        " + dependency,
+                  1
+              )
+
+              root.write_text(content)
+          PY
 
       - name: Dar permissao ao Gradle
         run: chmod +x android/gradlew
 
       - name: Gerar APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: |
+          ./gradlew assembleDebug --no-daemon
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
@@ -71,3 +140,4 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
+
