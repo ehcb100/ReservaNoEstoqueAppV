@@ -1,0 +1,17 @@
+{
+  "appId": "br.com.reservanoestoque.comandas",
+  "appName": "Comandas",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    }
+  }
+}
