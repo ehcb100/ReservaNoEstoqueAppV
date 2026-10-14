@@ -1,0 +1,9 @@
+
+{
+  "appId": "br.com.reservanoestoque.comandas",
+  "appName": "Reserva NoEstoque",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
