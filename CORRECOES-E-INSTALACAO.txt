@@ -1,0 +1,19 @@
+CORREÇÕES APLICADAS (18/10/2026)
+
+1. Remove referência a native-push.bundle.js do site GitHub Pages (não existe no repositório).
+2. Mantém a referência no APK: scripts/preparar_www.py injeta o script no www/index.html e o GitHub Actions gera o bundle.
+3. Evita erro de JavaScript quando botão enableNotifications não existe.
+4. Ajusta visibilidade do campo de senha e mensagem de erro de autenticação.
+5. Cria ícones PWA a partir de rowlet.png para evitar 404 e falha no service worker.
+
+ATENÇÃO: NÃO HÁ GARANTIA DE LOGIN ATÉ CONFIGURAR FIREBASE AUTHENTICATION.
+- Habilite o provedor Email/Senha em Firebase Authentication.
+- Crie o usuário interno equipe@comandas.example com a senha/código de equipe (não compartilhe o código).
+- Na aba Usuários, copie o UID dessa conta.
+- No arquivo firestore.rules, substitua INSIRA_UID_DA_EQUIPE pelo UID exato e publique as regras no console Firestore.
+- NÃO use allow read, write: if true.
+- GitHub Pages: faça upload dos arquivos e aguarde deploy; use Ctrl+Shift+R.
+- Android: após atualizar GitHub, rode workflow Gerar APK Android, baixe o novo artefato e instale.
+- O sucesso do workflow Alertas não prova que há comandas ou tokens FCM registrados.
+
+IMPORTANTE: O arquivo app.js é legado; a interface atual está em index.html.

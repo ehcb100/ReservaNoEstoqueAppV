@@ -357,7 +357,7 @@ padding:13px 17px;border-radius:10px;box-shadow:0 12px 30px #0008;z-index:20}
 <div id="accessGate" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#080d18;color:#fff;padding:20px;font-family:system-ui,sans-serif">
 <form id="accessForm" style="width:min(420px,100%);background:#152035;padding:28px;border-radius:16px;border:1px solid #41526d;display:grid;gap:16px">
 <h2 style="margin:0">COMANDAS · ACESSO DA EQUIPE</h2><p style="margin:0;color:#cbd5e1">Informe o código de acesso. A sessão ficará salva neste dispositivo.</p>
-<label for="accessCode">Código da equipe</label><input id="accessCode" type="password" autocomplete="current-password" required style="padding:14px;border-radius:8px;border:1px solid #8290a8;font-size:17px;color:#111" />
+<label for="accessCode">Código da equipe</label><input id="accessCode" type="password" autocomplete="current-password" required style="padding:14px;border-radius:8px;border:1px solid #8290a8;font-size:17px;color:#fff;background:#081426;-webkit-text-fill-color:#fff;caret-color:#61a5ff" />
 <button id="accessSubmit" type="submit" style="padding:14px;background:#61a5ff;color:#081321;border:0;border-radius:8px;font-weight:bold">ENTRAR</button>
 <p id="accessError" role="alert" style="margin:0;color:#ffd29b;overflow-wrap:anywhere"></p></form></div>
 <button id="logoutTeam" type="button" style="position:fixed;bottom:10px;right:10px;z-index:9998;background:#1b2a40;color:#fff;border:1px solid #73849a;border-radius:7px;padding:8px 12px;font-size:12px">Sair da equipe</button>
@@ -439,7 +439,7 @@ async function iniciarFirebase(){
     console.error("Erro ao conectar Firebase:",e);
     document.getElementById("connectionText").textContent="FIREBASE DESCONECTADO";
     accessVisible(true);
-    authMessage("Não foi possível iniciar o Firebase: "+e.message);
+    authMessage("Não foi possível iniciar o Firebase: "+(e.code||e.message));
   }
 }
 document.getElementById("accessForm").addEventListener("submit",async e=>{
@@ -449,13 +449,13 @@ document.getElementById("accessForm").addEventListener("submit",async e=>{
   btn.disabled=true;
   authMessage("Validando acesso...");
   try{
-    if(!authInstance||!authSignIn)throw Error("Firebase indisponível. Confira a conexão.");
+    if(!authInstance||!authSignIn)throw Error("Firebase não inicializou. Verifique a mensagem de conexão e os erros do Console.");
     await authSignIn(authInstance,TEAM_EMAIL,code);
     document.getElementById("accessCode").value="";
     authMessage("");
   }catch(err){
     console.error("Autenticação:",err.code||err.message);
-    authMessage("Código incorreto ou conta não configurada ("+(err.code||"erro")+").");
+    authMessage("Não foi possível entrar: " + (err.code || err.message || "erro desconhecido") + ". Confira o usuário da equipe no Firebase Authentication.");
   }finally{btn.disabled=false;}
 });
 document.getElementById("logoutTeam").addEventListener("click",async()=>{
@@ -1000,7 +1000,7 @@ $("create").addEventListener("click",createComanda);
 initInstitutionalForms();
 $("searchBox").addEventListener("input",renderSearch);
 ["dateFrom","dateTo","reportCategory"].forEach(id=>$(id).addEventListener("change",renderReportPreview));
-$("enableNotifications").addEventListener("click",enableBrowserNotifications);
+$("enableNotifications")?.addEventListener("click",enableBrowserNotifications);
 updateNotificationStatus();
 
 function buildPdf(list,title="RELATÓRIO DE COMANDAS"){
@@ -1126,6 +1126,6 @@ firebaseInicializando = iniciarFirebase();
 </script>
 <script type="module" src="./push-client.js"></script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.warn));}</script>
-<script type="module" src="./native-push.bundle.js"></script>
+<!-- O script nativo é inserido somente durante a compilação do APK. -->
 </body>
 </html>
