@@ -1,16 +1,14 @@
+// SOMENTE TESTE: qualquer pessoa pode criar uma conta anonima no projeto.
+// NAO PUBLICAR EM PRODUCAO com dados reais de clientes.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Substitua INSIRA_UID_DA_EQUIPE pelo UID da conta criada no Firebase Authentication.
-    function equipe() {
-      return request.auth != null && request.auth.uid == 'INSIRA_UID_DA_EQUIPE';
-    }
     match /comandas/{id} {
-      allow read, create, update, delete: if equipe();
+      allow read, create, update, delete: if request.auth != null;
     }
     match /pushTokens/{id} {
       allow read, delete: if false;
-      allow create, update: if equipe()
+      allow create, update: if request.auth != null
         && request.resource.data.keys().hasOnly(['token','uid','updatedAt','platform'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.token is string

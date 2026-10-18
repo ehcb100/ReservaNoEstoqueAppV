@@ -1,0 +1,14 @@
+COMANDAS — VERSAO SEM TELA DE LOGIN (TESTE)
+
+1. Firebase Console > Authentication > Metodo de login > habilitar Anonimo.
+2. O arquivo firestore.rules incluido e SOMENTE PARA TESTES com dados ficticios.
+   IMPORTANTE: contas anonimas podem ser criadas por qualquer visitante; as regras
+   permitem acesso a todas as comandas para qualquer conta autenticada.
+   NAO publique essas regras para dados reais de clientes.
+3. Para testar sincronizacao, publique os arquivos no GitHub Pages, atualize com
+   Ctrl+Shift+R e cadastre uma comanda ficticia. Confira em Firestore > Dados.
+4. Recompile o APK no GitHub Actions para incorporar as alteracoes no Android.
+5. A sincronizacao exige internet e regras adequadas. O indicador FIREBASE ONLINE
+   somente aparece quando a primeira leitura do Firestore for concluida.
+6. Para producao, adote acesso controlado de funcionarios ou backend que valide
+   autorizacao antes de permitir leitura e escrita.
