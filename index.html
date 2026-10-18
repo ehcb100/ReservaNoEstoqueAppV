@@ -354,6 +354,13 @@ padding:13px 17px;border-radius:10px;box-shadow:0 12px 30px #0008;z-index:20}
 <div id="toast" class="toast hidden"></div>
 <div id="detailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Detalhes da requisição"><div class="detail-modal"><div class="section-top"><div><h2 id="detailTitle">DETALHES DA REQUISIÇÃO</h2><p id="detailSubtitle"></p></div><button class="btn ghost" id="closeDetail">Fechar ✕</button></div><div id="detailContent"></div></div></div>
 
+<div id="accessGate" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#080d18;color:#fff;padding:20px;font-family:system-ui,sans-serif">
+<form id="accessForm" style="width:min(420px,100%);background:#152035;padding:28px;border-radius:16px;border:1px solid #41526d;display:grid;gap:16px">
+<h2 style="margin:0">COMANDAS · ACESSO DA EQUIPE</h2><p style="margin:0;color:#cbd5e1">Informe o código de acesso. A sessão ficará salva neste dispositivo.</p>
+<label for="accessCode">Código da equipe</label><input id="accessCode" type="password" autocomplete="current-password" required style="padding:14px;border-radius:8px;border:1px solid #8290a8;font-size:17px;color:#111" />
+<button id="accessSubmit" type="submit" style="padding:14px;background:#61a5ff;color:#081321;border:0;border-radius:8px;font-weight:bold">ENTRAR</button>
+<p id="accessError" role="alert" style="margin:0;color:#ffd29b;overflow-wrap:anywhere"></p></form></div>
+<button id="logoutTeam" type="button" style="position:fixed;bottom:10px;right:10px;z-index:9998;background:#1b2a40;color:#fff;border:1px solid #73849a;border-radius:7px;padding:8px 12px;font-size:12px">Sair da equipe</button>
 <script type="module">
 /* =========================================================
    FIREBASE
@@ -377,36 +384,83 @@ let firebaseInicializando = null;
 const isAndroidApp = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 let unsubscribe = null;
 
+let authReady = false;
+let authInstance = null;
+let authSignIn = null;
+let authSignOut = null;
+const TEAM_EMAIL = "equipe@comandas.example"; // Conta interna criada manualmente no Firebase Authentication.
+function authMessage(message){ document.getElementById("accessError").textContent = message || ""; }
+function accessVisible(show){ document.getElementById("accessGate").style.display = show ? "flex" : "none"; }
 async function iniciarFirebase(){
-  if(!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId) return;
   try{
     const {initializeApp} = await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js");
     const {getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc} =
       await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js");
+    const {getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged} =
+      await import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js");
     const app = initializeApp(FIREBASE_CONFIG);
     window.__reservaFirebaseApp = app;
-    window.dispatchEvent(new Event("reserva-firebase-ready"));
     db = {firestore:getFirestore(app), collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc};
-    document.getElementById("connectionText").textContent = "VERIFICANDO FIREBASE";
-    unsubscribe = db.onSnapshot(db.collection(db.firestore,"comandas"), snap=>{
-      firebaseAtivo = true;
-      document.getElementById("connectionText").textContent = "FIREBASE ONLINE";
-      comandas = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>
-        (b.createdAt||"").localeCompare(a.createdAt||""));
+    authInstance = getAuth(app);
+    authSignIn = signInWithEmailAndPassword;
+    authSignOut = signOut;
+    await setPersistence(authInstance,browserLocalPersistence);
+    window.dispatchEvent(new Event("reserva-firebase-ready"));
+    document.getElementById("connectionText").textContent = "AGUARDANDO AUTORIZAÇÃO";
+    onAuthStateChanged(authInstance, user => {
+      authReady = !!user;
+      if(unsubscribe){unsubscribe();unsubscribe=null;}
+      firebaseAtivo=false;
+      comandas=[];
       renderAll();
-      window.dispatchEvent(new Event("reserva-orders-updated"));
-    }, err=>{
-      firebaseAtivo = false;
-      console.error("Erro na leitura das comandas:", err);
-      document.getElementById("connectionText").textContent = "FIREBASE: ERRO DE ACESSO";
-      toast("Firestore: " + (err.code || err.message || "falha de leitura"));
-    });
+      if(!user){
+        accessVisible(true);
+        document.getElementById("connectionText").textContent = "ACESSO RESTRITO";
+        return;
+      }
+      accessVisible(false);
+      document.getElementById("connectionText").textContent = "CONECTANDO FIREBASE";
+      unsubscribe = db.onSnapshot(db.collection(db.firestore,"comandas"), snap=>{
+        firebaseAtivo=true;
+        document.getElementById("connectionText").textContent = "FIREBASE ONLINE";
+        comandas=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>
+          (b.createdAt||"").localeCompare(a.createdAt||""));
+        renderAll();
+        window.dispatchEvent(new Event("reserva-orders-updated"));
+      },err=>{
+        firebaseAtivo=false;
+        console.error("Firestore:",err);
+        document.getElementById("connectionText").textContent="FIREBASE: ACESSO NEGADO";
+        authMessage("Erro no banco: " + (err.code||err.message));
+        toast("Firestore: " + (err.code||err.message));
+      });
+    },error=>{accessVisible(true);authMessage(error.message);});
   }catch(e){
-    console.error("Erro ao conectar Firebase:", e);
-    document.getElementById("connectionText").textContent = "FIREBASE DESCONECTADO";
-    toast("Firebase desconectado. Verifique a internet e tente novamente.");
+    console.error("Erro ao conectar Firebase:",e);
+    document.getElementById("connectionText").textContent="FIREBASE DESCONECTADO";
+    accessVisible(true);
+    authMessage("Não foi possível iniciar o Firebase: "+e.message);
   }
 }
+document.getElementById("accessForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=document.getElementById("accessSubmit");
+  const code=document.getElementById("accessCode").value;
+  btn.disabled=true;
+  authMessage("Validando acesso...");
+  try{
+    if(!authInstance||!authSignIn)throw Error("Firebase indisponível. Confira a conexão.");
+    await authSignIn(authInstance,TEAM_EMAIL,code);
+    document.getElementById("accessCode").value="";
+    authMessage("");
+  }catch(err){
+    console.error("Autenticação:",err.code||err.message);
+    authMessage("Código incorreto ou conta não configurada ("+(err.code||"erro")+").");
+  }finally{btn.disabled=false;}
+});
+document.getElementById("logoutTeam").addEventListener("click",async()=>{
+  if(authInstance&&authSignOut)await authSignOut(authInstance);
+});
 
 let comandas = []; // O Firestore é a fonte única de dados compartilhados.
 
@@ -437,7 +491,7 @@ function toast(msg){
 
 async function requireFirebase(){
   if(firebaseInicializando) await firebaseInicializando;
-  if(!db || !db.firestore) throw new Error("Firebase indisponível. Nenhum dado foi salvo. Verifique a internet e as configurações do projeto.");
+  if(!db || !db.firestore || !authReady || !firebaseAtivo) throw new Error("Acesso não autorizado ou Firestore desconectado. Nenhum dado foi salvo.");
   // A escrita exige confirmação do servidor; o SDK informará erros de regras/permissões.
 }
 async function saveComanda(c){

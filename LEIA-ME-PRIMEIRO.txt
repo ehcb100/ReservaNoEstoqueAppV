@@ -1,0 +1,14 @@
+COMANDAS — CÓDIGO DE ACESSO DA EQUIPE
+
+1. Firebase Console > Authentication > Sign-in method > habilite E-mail/senha.
+2. Authentication > Users > Add user. Use e-mail INTERNO equipe@comandas.example e escolha uma senha/código NOVO e forte (não reutilize SIMPLESEBOBO, já divulgado no chat). Não precisa de uma caixa de entrada real, mas sem e-mail real não haverá recuperação de senha por e-mail.
+3. Copie o UID desse usuário (não a senha).
+4. Firestore > Regras: abra firestore.rules e substitua INSIRA_UID_DA_EQUIPE pelo UID; publique as regras. Não publique a regra com o placeholder.
+5. Envie os arquivos deste ZIP à RAIZ do GitHub. Aguarde Pages publicar e limpe o cache/atualize a página.
+6. Abra o site, informe o novo código e cadastre uma comanda de teste. Confirme que apareceu em Firestore > Dados.
+7. Recompile o APK em GitHub Actions (gerar-apk.yml), instale e entre com o mesmo código.
+8. A conta é compartilhada. Para revogar o acesso de um dispositivo, altere a senha e revogue sessões/tokens da conta. Uma senha compartilhada não identifica individualmente funcionários.
+9. Se houver erro de autorização, confira UID, regras publicadas, Authentication habilitado e projeto papelariaalerta.
+10. A entrega de notificações em segundo plano exige testes adicionais e não está garantida apenas por este pacote.
+
+Não envie senhas, códigos, JSONs administrativos ou chaves privadas pelo chat.
