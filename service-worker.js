@@ -1,7 +1,0 @@
-const CACHE = "comandas-pwa-v3";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png"];
-self.addEventListener("install", event => event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
-self.addEventListener("activate", event => event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()])));
-self.addEventListener("fetch", event => {if(event.request.method!=="GET" || new URL(event.request.url).origin!==self.location.origin)return;event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));}return response;}).catch(()=>caches.match(event.request)));});
-self.addEventListener("push", event => {let data={};try{data=event.data?.json()||{};}catch{data={body:event.data?.text()||""};}const n=data.notification||data;event.waitUntil(self.registration.showNotification(n.title||"Comandas • Papelaria",{body:n.body||"Nova atualização",icon:"./icons/icon-192.png",badge:"./icons/icon-192.png",tag:n.tag||data.data?.tag||"comandas",data:{url:"./?alerta=1"}}));});
-self.addEventListener("notificationclick",event=>{event.notification.close();event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(async list=>{for(const c of list){if(c.url.startsWith(self.registration.scope)){await c.focus();c.postMessage({type:"OPEN_ALERTS"});return;}}return clients.openWindow("./?alerta=1");}));});
