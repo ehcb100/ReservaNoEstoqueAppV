@@ -1,26 +1,105 @@
+
 name: Alertas de comandas
+
 on:
   schedule:
     - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
+
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
   group: alertas-comandas
   cancel-in-progress: false
+
 jobs:
   avisar:
+    name: Verificar e enviar alertas
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Baixar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: pip
-          cache-dependency-path: scripts/requirements.txt
-      - run: pip install -r scripts/requirements.txt
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+
+      - name: Verificar credencial Firebase
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          python - <<'PY'
+          import os
+          import json
+          import sys
+
+          raw = os.environ.get(
+              "FIREBASE_SERVICE_ACCOUNT", ""
+          ).strip()
+
+          if not raw:
+              print(
+                  "::error::O segredo "
+                  "FIREBASE_SERVICE_ACCOUNT "
+                  "nao foi recebido pelo workflow."
+              )
+              sys.exit(1)
+
+          try:
+              config = json.loads(raw)
+          except json.JSONDecodeError:
+              print(
+                  "::error::O segredo nao contem "
+                  "um JSON valido."
+              )
+              sys.exit(1)
+
+          if config.get("type") != "service_account":
+              print(
+                  "::error::A credencial nao e "
+                  "uma conta de servico."
+              )
+              sys.exit(1)
+
+          if config.get("project_id") != "papelariaalerta":
+              print(
+                  "::error::A credencial pertence "
+                  "a outro projeto Firebase."
+              )
+              sys.exit(1)
+
+          required = (
+              "private_key",
+              "client_email",
+              "token_uri"
+          )
+
+          if any(not config.get(k) for k in required):
+              print(
+                  "::error::A credencial esta "
+                  "incompleta."
+              )
+              sys.exit(1)
+
+          print(
+              "Credencial Firebase encontrada "
+              "e estrutura validada."
+          )
+          PY
+
       - name: Verificar e enviar alertas
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: python scripts/enviar_alertas.py
+          PYTHONUNBUFFERED: '1'
+        run: |
+          python scripts/enviar_alertas.py
