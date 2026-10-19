@@ -174,7 +174,7 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
 }
 /* Menu lateral: vidro oceanico mais transparente (55% opaco) */
 .sidebar {
-  background: rgba(3, 17, 35, .55) !important;
+  background: rgba(3, 17, 35, var(--menu-opacity, .55)) !important;
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border-right: 1px solid rgba(120, 200, 255, .16);
@@ -187,6 +187,29 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
   .panel, .stat, .card { -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
 }
 /* ===== FIM KYOGRE ===== */
+
+
+/* Controle discreto da opacidade do menu */
+.menu-opacity-control {
+  position: fixed; right: 14px; bottom: 12px; z-index: 15;
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 11px; border-radius: 12px;
+  background: rgba(3, 17, 35, .72);
+  border: 1px solid rgba(120, 200, 255, .17);
+  box-shadow: 0 4px 18px rgba(0,0,0,.18);
+  color: #c0d2e2; font-size: 11px;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.menu-opacity-control label { font-size: 11px; font-weight: 500; color: inherit; white-space: nowrap; }
+.menu-opacity-control input[type="range"] {
+  width: 94px; height: 4px; padding: 0; margin: 0;
+  accent-color: #7dbad4; cursor: pointer;
+}
+.menu-opacity-control output { min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 650px) {
+  .menu-opacity-control { position: relative; bottom: auto; right: auto;
+    width: fit-content; margin: 12px 12px 18px auto; }
+}
 
 </style>
 </head>
@@ -398,6 +421,11 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
 </div></section>
 
 </main>
+</div>
+<div class="menu-opacity-control" aria-label="Ajuste de transparência do menu">
+  <label for="menuOpacityRange">Menu</label>
+  <input id="menuOpacityRange" type="range" min="20" max="95" step="5" value="55" aria-label="Opacidade do menu, em porcentagem">
+  <output id="menuOpacityValue" for="menuOpacityRange">55%</output>
 </div>
 <div id="toast" class="toast hidden"></div>
 <div id="detailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Detalhes da requisição"><div class="detail-modal"><div class="section-top"><div><h2 id="detailTitle">DETALHES DA REQUISIÇÃO</h2><p id="detailSubtitle"></p></div><button class="btn ghost" id="closeDetail">Fechar ✕</button></div><div id="detailContent"></div></div></div>
@@ -1151,5 +1179,27 @@ firebaseInicializando = iniciarFirebase();
 <script type="module" src="./push-client.js"></script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.warn));}</script>
 <!-- O script nativo é inserido somente durante a compilação do APK. -->
+<script>
+/* Ajuste visual local: não interfere no Firebase nem nos dados das comandas. */
+(function () {
+  const range = document.getElementById('menuOpacityRange');
+  const output = document.getElementById('menuOpacityValue');
+  const key = 'comandas_menu_opacity';
+  function apply(value) {
+    const n = Number(value);
+    const opacity = Number.isFinite(n) ? Math.max(20, Math.min(95, n)) : 55;
+    document.documentElement.style.setProperty('--menu-opacity', (opacity / 100).toFixed(2));
+    range.value = String(opacity);
+    output.value = opacity + '%';
+    output.textContent = opacity + '%';
+    return opacity;
+  }
+  try { apply(localStorage.getItem(key) ?? 55); } catch (_) { apply(55); }
+  range.addEventListener('input', function () {
+    const opacity = apply(range.value);
+    try { localStorage.setItem(key, String(opacity)); } catch (_) {}
+  });
+})();
+</script>
 </body>
 </html>
