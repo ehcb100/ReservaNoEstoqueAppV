@@ -150,7 +150,7 @@ body { position: relative; isolation: isolate; }
 #kyogre-background {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   background-color: #031322;
   background-image: linear-gradient(180deg, rgba(1, 12, 27, .20), rgba(1, 12, 27, .42)), url("./kyogre-oceano.gif");
@@ -158,6 +158,8 @@ body { position: relative; isolation: isolate; }
   background-size: cover;
   background-repeat: no-repeat;
 }
+/* O layout fica acima da imagem, sem cobri-la com uma camada solida */
+.layout { position: relative; z-index: 1; }
 /* Layout sem camada solida cobrindo o fundo */
 body > .layout, .layout, main, .content, .main-content, .page-content {
   background-color: transparent !important;
