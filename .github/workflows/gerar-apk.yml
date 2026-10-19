@@ -105,6 +105,11 @@ jobs:
           python3 -m pip install --quiet Pillow
           python3 scripts/configurar_android.py
 
+      - name: Instalar toque suave JRPG no Android
+        run: |
+          mkdir -p android/app/src/main/res/raw
+          cp assets/alerta_jrpg.wav android/app/src/main/res/raw/alerta_jrpg.wav
+
       - name: Gerar APK
         working-directory: android
         run: |
