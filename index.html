@@ -142,6 +142,34 @@ padding:13px 17px;border-radius:10px;box-shadow:0 12px 30px #0008;z-index:20}
  nav{grid-template-columns:repeat(2,1fr)}main{padding:12px}.hero{display:block}.clock{margin-top:15px}
  .stats,.form-grid.two,.form-grid.three,.form-grid.four,.price-grid{grid-template-columns:1fr}
 }
+
+/* ===== FUNDO ANIMADO KYOGRE - apenas visual ===== */
+html { min-height: 100%; background-color: #031322; }
+body {
+  background-color: #031322 !important;
+  background-image:
+    linear-gradient(180deg, rgba(1, 12, 27, .38), rgba(1, 12, 27, .70)),
+    url("./kyogre-oceano.gif") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+/* Painéis translúcidos: mantêm textos legíveis sobre o oceano */
+.panel, .stat, .sidebar {
+  background-color: rgba(6, 22, 41, .79) !important;
+  -webkit-backdrop-filter: blur(11px);
+  backdrop-filter: blur(11px);
+}
+.sidebar { background-color: rgba(3, 13, 28, .87) !important; }
+@media (max-width: 650px) {
+  body { background-attachment: scroll !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body { background-image: linear-gradient(135deg,#031322,#102c45) !important; }
+}
+/* ===== FIM FUNDO KYOGRE ===== */
+
 </style>
 </head>
 

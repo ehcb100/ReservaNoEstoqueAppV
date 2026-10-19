@@ -1,0 +1,10 @@
+FUNDO KYOGRE INTEGRADO
+
+1. Extraia este ZIP.
+2. Envie os arquivos da pasta ReservaNoEstoqueAppV-main para a raiz do repositorio GitHub.
+3. Confira que index.html e kyogre-oceano.gif estao na mesma pasta.
+4. Aguarde o GitHub Pages publicar e recarregue com Ctrl+Shift+R.
+
+O CSS do fundo foi inserido dentro de index.html, antes de </style>.
+Nao houve alteracao intencional na logica Firebase, no cadastro de comandas ou nos workflows.
+O GIF animado possui bolhas e movimento suave de camera, sem movimento independente das nadadeiras.
