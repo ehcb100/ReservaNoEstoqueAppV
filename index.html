@@ -162,13 +162,14 @@ padding:13px 17px;border-radius:10px;box-shadow:0 12px 30px #0008;z-index:20}
     <button class="nav" data-view="search">Pesquisar</button>
     <button class="nav" data-view="reports">Relatórios / PDF</button>
   </nav>
-  <div class="side-bottom"><span class="online"></span><span id="connectionText">SISTEMA LOCAL</span></div>
+  <div class="side-bottom"><span class="online"></span><span id="connectionText">CONECTANDO FIREBASE</span></div>
 </aside>
 
 <main>
 <header class="hero panel">
   <div>
     <div class="mini-title">PAPELARIA • SISTEMA DE COMANDAS</div>
+    <div id="connectionTextMobile" role="status" aria-live="polite" style="display:inline-block;margin:9px 0;padding:7px 12px;border:1px solid #64748b;border-radius:9px;font-size:12px">CONECTANDO FIREBASE</div>
     <h1 id="title">REGISTRO DE COMANDAS</h1>
     <p>Registre serviços, pagamentos, produção e gere relatórios em PDF.</p>
   </div>
@@ -378,8 +379,15 @@ let unsubscribe = null;
 
 let authReady = false;
 let authInstance = null;
+function setConnectionStatus(message){
+  for(const id of ["connectionText","connectionTextMobile"]){
+    const element=document.getElementById(id);
+    if(element) element.textContent=message;
+  }
+}
 function showConnectionError(message){
-  document.getElementById("connectionText").textContent="FIREBASE: ERRO";
+  firebaseAtivo=false;
+  setConnectionStatus("FIREBASE: ERRO");
   console.error("Conexão Firebase:",message);
   toast("Firebase: "+message);
 }
@@ -396,7 +404,7 @@ async function iniciarFirebase(){
     authInstance = getAuth(app);
     await setPersistence(authInstance,browserLocalPersistence);
     window.dispatchEvent(new Event("reserva-firebase-ready"));
-    document.getElementById("connectionText").textContent = "CONECTANDO FIREBASE";
+    setConnectionStatus("CONECTANDO FIREBASE");
     onAuthStateChanged(authInstance, user => {
       authReady = !!user;
       if(unsubscribe){unsubscribe();unsubscribe=null;}
@@ -407,10 +415,10 @@ async function iniciarFirebase(){
         signInAnonymously(authInstance).catch(e=>showConnectionError(e.code||e.message));
         return;
       }
-      document.getElementById("connectionText").textContent = "CONECTANDO FIREBASE";
+      setConnectionStatus("CONECTANDO FIREBASE");
       unsubscribe = db.onSnapshot(db.collection(db.firestore,"comandas"), snap=>{
         firebaseAtivo=true;
-        document.getElementById("connectionText").textContent = "FIREBASE ONLINE";
+        setConnectionStatus("FIREBASE ONLINE");
         comandas=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>
           (b.createdAt||"").localeCompare(a.createdAt||""));
         renderAll();
@@ -418,13 +426,13 @@ async function iniciarFirebase(){
       },err=>{
         firebaseAtivo=false;
         console.error("Firestore:",err);
-        document.getElementById("connectionText").textContent="FIREBASE: ACESSO NEGADO";
-        toast("Firestore: " + (err.code||err.message));
+        setConnectionStatus(err.code === "permission-denied" ? "FIREBASE: SEM PERMISSÃO" : "FIREBASE: ERRO");
+        toast("Firestore: " + (err.code||err.message) + ". Nenhum dado foi salvo.");
       });
     },error=>showConnectionError(error.code||error.message));
   }catch(e){
     console.error("Erro ao conectar Firebase:",e);
-    document.getElementById("connectionText").textContent="FIREBASE DESCONECTADO";
+    setConnectionStatus("FIREBASE DESCONECTADO");
     showConnectionError(e.code||e.message);
   }
 }
@@ -457,7 +465,7 @@ function toast(msg){
 
 async function requireFirebase(){
   if(firebaseInicializando) await firebaseInicializando;
-  if(!db || !db.firestore || !authReady || !firebaseAtivo) throw new Error("Acesso não autorizado ou Firestore desconectado. Nenhum dado foi salvo.");
+  if(!db || !db.firestore || !authReady || !firebaseAtivo) throw new Error("Firestore não está pronto ou não tem permissão. Confira o indicador de conexão. Nenhum dado foi salvo.");
   // A escrita exige confirmação do servidor; o SDK informará erros de regras/permissões.
 }
 async function saveComanda(c){

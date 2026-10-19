@@ -8,19 +8,13 @@ if (Capacitor.isNativePlatform()) {
     try {
       const app=window.__reservaFirebaseApp;
       if (!app) throw Error('Firebase ainda não conectado.');
-      const [{getAuth,signInWithEmailAndPassword},{getFirestore,doc,setDoc,serverTimestamp}] = await Promise.all([
+      const [{getAuth},{getFirestore,doc,setDoc,serverTimestamp}] = await Promise.all([
         import('https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js'),
         import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js')
       ]);
       const auth=getAuth(app);
       let user=auth.currentUser;
-      if(!user){
-        const email=prompt('E-mail do funcionário autorizado:');
-        if(!email)return;
-        const password=prompt('Senha do funcionário:');
-        if(!password)return;
-        user=(await signInWithEmailAndPassword(auth,email,password)).user;
-      }
+      if(!user) throw Error('Aguarde a conexão automática com o Firebase.');
       const permission=await PushNotifications.checkPermissions();
       if(permission.receive!=='granted'){
         const requested=await PushNotifications.requestPermissions();

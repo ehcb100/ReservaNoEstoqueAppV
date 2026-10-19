@@ -3,14 +3,14 @@ let listening = false;
 window.reservaAtivarPush = async function(){
   if(!window.__reservaFirebaseApp){alert("Firebase não conectado. Confira a conexão.");return;}
   try {
-    const [{getMessaging,getToken,onMessage,isSupported},{getFirestore,doc,setDoc,serverTimestamp},{getAuth,signInWithEmailAndPassword}] = await Promise.all([
+    const [{getMessaging,getToken,onMessage,isSupported},{getFirestore,doc,setDoc,serverTimestamp},{getAuth}] = await Promise.all([
       import("https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js"),
       import("https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"),
       import("https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js")]);
     if(!await isSupported()) throw Error("Notificações push não suportadas neste navegador.");
     const auth=getAuth(window.__reservaFirebaseApp);
     let user=auth.currentUser;
-    if(!user) throw Error("Entre com o código da equipe antes de ativar notificações.");
+    if(!user) throw Error("Aguarde a conexão automática com o Firebase.");
     if(Notification.permission!=="granted"){
       const permission=await Notification.requestPermission();
       if(permission!=="granted")throw Error("Permissão de notificação não concedida.");

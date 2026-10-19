@@ -1,0 +1,21 @@
+COMANDAS - SINCRONIZACAO SEM TELA DE LOGIN
+
+O site abre diretamente e usa Firebase Authentication ANONIMO nos bastidores.
+Nao ha senha, codigo de equipe ou autorizacao manual de UID na interface.
+O Firestore e a fonte unica de dados; se a escrita falhar, o sistema nao finge salvar.
+
+1. No Firebase Authentication > Metodos de login, ative Anonimo.
+2. Envie os arquivos do ZIP ao GitHub e aguarde a publicacao.
+3. O indicador FIREBASE aparece agora tambem no topo da pagina (inclusive celular).
+4. As regras SEGURAS por padrao, firestore.rules, bloqueiam acesso sem autorizacao.
+5. Para um TESTE ISOLADO com dados 100% FICTICIOS, existe firestore.TESTE-TEMPORARIO.rules.
+   Se voce decidir publica-las manualmente no console, qualquer visitante autenticado
+   anonimamente pode ler/alterar/excluir todas as comandas. A regra expira em 21/10/2026 UTC.
+   NUNCA use esse teste com nomes, telefones, registros ou outros dados reais de clientes.
+6. Para uso real sem login e sem autorizacao de dispositivos, nao e possivel garantir
+   acesso privado aos dados apenas com regras do Firestore e autenticacao anonima.
+   E necessario algum controle de acesso (login, aprovacao ou backend confiavel).
+7. Depois de confirmar teste no site, gere um APK novo em GitHub Actions > Gerar APK.
+8. O script de notificacoes tambem precisa de tokens FCM registrados para enviar alertas.
+
+Nao compartilhe credenciais administrativas nem publique contas de servico no repositorio.

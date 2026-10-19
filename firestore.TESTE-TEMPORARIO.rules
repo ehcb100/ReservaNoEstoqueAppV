@@ -1,0 +1,21 @@
+// SOMENTE TESTE COM DADOS FICTÍCIOS. NÃO USAR COM DADOS REAIS.
+// Qualquer visitante do site pode obter uma conta anônima e acessar as comandas.
+// Expira em 21/10/2026 (UTC), depois disso o acesso será bloqueado.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function testeAtivo() {
+      return request.time < timestamp.date(2026, 10, 21)
+        && request.auth != null;
+    }
+    match /comandas/{id} {
+      allow read, create, update, delete: if testeAtivo();
+    }
+    match /pushTokens/{id} {
+      allow create, update: if testeAtivo()
+        && request.resource.data.uid == request.auth.uid;
+      allow read, delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
