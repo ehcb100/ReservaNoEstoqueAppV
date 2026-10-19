@@ -165,27 +165,23 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
   background-color: transparent !important;
   background-image: none !important;
 }
-/* Cartoes e menu em vidro escuro, mantendo o texto legivel */
-.panel, .stat, .card, .table-wrap, .modal-content {
-  background-color: rgba(4, 18, 36, .72) !important;
+/* As superficies da interface sao transparentes; o GIF permanece intocado. */
+:root { --ui-opacity: .55; }
+.sidebar, .panel, .stat, .card, .table-wrap, .modal-content,
+.report-card, .detail-modal, .detail-field, .detail-modal .notes,
+.price-grid label, .btn.ghost, .report-table, .toast {
+  background: rgba(4, 18, 36, var(--ui-opacity)) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
-/* Menu lateral: vidro oceanico mais transparente (55% opaco) */
-.sidebar {
-  background-color: rgba(3, 17, 35, var(--menu-opacity, .55)) !important;
-  background-image: none !important;
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  border-right: 1px solid rgba(120, 200, 255, .16);
-}
+.sidebar { border-right: 1px solid rgba(120, 200, 255, .16); }
+/* Botoes de navegacao mantem sua legibilidade. */
 .sidebar .nav { transition: background .2s ease, border-color .2s ease; }
 .sidebar .nav:hover { background: rgba(70, 150, 210, .22) !important; }
 .sidebar .nav.active { background: rgba(70, 150, 210, .18) !important; border-color: rgba(120, 200, 255, .24); }
 @media (max-width: 650px) {
   #kyogre-background { background-position: 55% center; }
-  .panel, .stat, .card { -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
 }
 /* ===== FIM KYOGRE ===== */
 
@@ -423,8 +419,8 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
 
 </main>
 </div>
-<div class="menu-opacity-control" aria-label="Ajuste de transparência do menu">
-  <label for="menuOpacityRange">Menu</label>
+<div class="menu-opacity-control" aria-label="Ajuste de transparência das caixas e do menu">
+  <label for="menuOpacityRange">Interface</label>
   <input id="menuOpacityRange" type="range" min="10" max="95" step="5" value="55" aria-label="Opacidade do menu, em porcentagem">
   <output id="menuOpacityValue" for="menuOpacityRange">55%</output>
 </div>
@@ -1181,17 +1177,16 @@ firebaseInicializando = iniciarFirebase();
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.warn));}</script>
 <!-- O script nativo é inserido somente durante a compilação do APK. -->
 <script>
-/* Ajuste visual local: não interfere no Firebase nem nos dados das comandas. */
+/* Ajusta somente a opacidade das caixas; nunca altera a imagem do Kyogre. */
 (function () {
   const range = document.getElementById('menuOpacityRange');
   const output = document.getElementById('menuOpacityValue');
-  const key = 'comandas_menu_opacity';
+  if (!range || !output) return;
+  const key = 'comandas_interface_opacity';
   function apply(value) {
     const n = Number(value);
     const opacity = Number.isFinite(n) ? Math.max(10, Math.min(95, n)) : 55;
-    document.documentElement.style.setProperty('--menu-opacity', (opacity / 100).toFixed(2));
-    const menu = document.querySelector('.sidebar');
-    if (menu) menu.style.setProperty('background-color', `rgba(3, 17, 35, ${(opacity / 100).toFixed(2)})`, 'important');
+    document.documentElement.style.setProperty('--ui-opacity', String(opacity / 100));
     range.value = String(opacity);
     output.value = opacity + '%';
     output.textContent = opacity + '%';
