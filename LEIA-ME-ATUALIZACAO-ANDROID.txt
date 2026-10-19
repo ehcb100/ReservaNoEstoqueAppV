@@ -1,0 +1,14 @@
+COMANDAS — KYOGRE PIXEL ART + ALERTA JRPG
+
+1. Envie o conteudo do ZIP para a raiz do repositorio GitHub, preservando .github/workflows.
+2. Em Actions > Gerar APK Android > Run workflow, gere e instale o APK novo.
+3. Abra o APK, autorize notificacoes e use o botao de registro do celular para push.
+4. Confira os secrets FIREBASE_SERVICE_ACCOUNT e GOOGLE_SERVICES_JSON_BASE64 ja exigidos pelos workflows.
+5. Actions > Alertas de comandas deve estar habilitado. A rotina roda aproximadamente a cada 5 minutos (sem garantia de horario exato).
+6. Teste com uma comanda aberta; apos 20 minutos deve chegar 'Demanda de cliente em espera!!'.
+7. No Android, Configuracoes > Apps > Comandas > Notificacoes > Demandas em espera: verifique canal e som.
+
+O site e o Chrome continuam com o GIF kyogre-oceano.gif. O APK utiliza kyogre-mobile-pixel.png.
+O canal de som do Android pode precisar que o app seja reinstalado para trocar configuracoes antigas.
+Os alertas dependem de FCM, conexao e permissao. A automacao de 5 min nao e pontual.
+ATENCAO: a rotina envia os alertas para TODOS os dispositivos cadastrados no projeto; reveja autorizacoes de acesso aos dados.

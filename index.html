@@ -183,6 +183,12 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
 @media (max-width: 650px) {
   #kyogre-background { background-position: 55% center; }
 }
+/* Exclusivo do APK Capacitor: nunca aplicado ao site/Chrome. */
+html.comandas-android #kyogre-background {
+  background-image: url("./kyogre-mobile-pixel.png") !important;
+  background-position: center center !important;
+  background-size: cover !important;
+}
 /* ===== FIM KYOGRE ===== */
 
 
@@ -925,8 +931,8 @@ function checkDueNotifications(){
   setNotifiedAlertIds(notified);
   due.forEach(c=>{
     try{
-      const n=new Notification(`Comanda #${String(c.number).padStart(4,"0")} aguardando`,{
-        body:`${c.customer||"Cliente"} — registrada há mais de 20 minutos. Confira e finalize o serviço.`,
+      const n=new Notification("Demanda de cliente em espera!!",{
+        body:`Comanda #${String(c.number).padStart(4,"0")} — ${c.customer||"Cliente"}. Aguardando há mais de 20 minutos.`,
         tag:`papelaria-comanda-${c.id}`
       });
       n.onclick=()=>{window.focus();go("alerts");n.close();};

@@ -43,7 +43,7 @@ def notify_once(order_id,kind,title,body):
     delivered=0
     for token in tokens:
         try:
-            messaging.send(messaging.Message(token=token,notification=messaging.Notification(title=title,body=body),data={"tag":f"{order_id}-{kind}","url":"./?alerta=1"},webpush=messaging.WebpushConfig(fcm_options=messaging.WebpushFCMOptions(link="https://ehcb100.github.io/ReservaNoEstoqueAppV/?alerta=1"))))
+            messaging.send(messaging.Message(token=token,notification=messaging.Notification(title=title,body=body),android=messaging.AndroidConfig(priority='high',notification=messaging.AndroidNotification(channel_id='comandas_espera_jrpg_v1',sound='alerta_jrpg')) if kind=='pendente20' else None,data={"tag":f"{order_id}-{kind}","url":"./?alerta=1"},webpush=messaging.WebpushConfig(fcm_options=messaging.WebpushFCMOptions(link="https://ehcb100.github.io/ReservaNoEstoqueAppV/?alerta=1"))))
             delivered+=1
         except Exception as error:
             print(f"Falha de envio ({order_id}/{kind}): {type(error).__name__}: {error}")
@@ -58,4 +58,4 @@ for snapshot in orders:
     number=str(c.get("number") or snapshot.id)[:50]
     notify_once(snapshot.id,"nova","Nova comanda registrada",f"Comanda {number} recebida. Abra o aplicativo para conferir.")
     if c.get("status")!="concluida" and now-created>=timedelta(minutes=20):
-        notify_once(snapshot.id,"pendente20","Comanda pendente há 20 minutos",f"A comanda {number} continua aberta.")
+        notify_once(snapshot.id,"pendente20","Demanda de cliente em espera!!",f"A comanda {number} continua aberta há mais de 20 minutos.")

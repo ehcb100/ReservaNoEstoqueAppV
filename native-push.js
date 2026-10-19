@@ -4,6 +4,18 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 
 if (Capacitor.isNativePlatform()) {
+  // A classe é inserida exclusivamente no WebView do APK.
+  document.documentElement.classList.add('comandas-android');
+  // Criar o canal antes de solicitar o registro FCM.
+  PushNotifications.createChannel({
+    id: 'comandas_espera_jrpg_v1',
+    name: 'Demandas em espera',
+    description: 'Avisos suaves para comandas aguardando atendimento',
+    importance: 4,
+    visibility: 1,
+    sound: 'alerta_jrpg.wav',
+    vibration: true
+  }).catch(error => console.warn('Canal de alertas:', error));
   window.reservaAtivarPush = async () => {
     try {
       const app=window.__reservaFirebaseApp;
