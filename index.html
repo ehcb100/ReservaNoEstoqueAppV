@@ -166,7 +166,7 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
   background-image: none !important;
 }
 /* Cartoes e menu em vidro escuro, mantendo o texto legivel */
-.panel, .stat, .sidebar, .card, .table-wrap, .modal-content {
+.panel, .stat, .card, .table-wrap, .modal-content {
   background-color: rgba(4, 18, 36, .72) !important;
   background-image: none !important;
   -webkit-backdrop-filter: blur(9px);
@@ -174,9 +174,10 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
 }
 /* Menu lateral: vidro oceanico mais transparente (55% opaco) */
 .sidebar {
-  background: rgba(3, 17, 35, var(--menu-opacity, .55)) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background-color: rgba(3, 17, 35, var(--menu-opacity, .55)) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
   border-right: 1px solid rgba(120, 200, 255, .16);
 }
 .sidebar .nav { transition: background .2s ease, border-color .2s ease; }
@@ -424,7 +425,7 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
 </div>
 <div class="menu-opacity-control" aria-label="Ajuste de transparência do menu">
   <label for="menuOpacityRange">Menu</label>
-  <input id="menuOpacityRange" type="range" min="20" max="95" step="5" value="55" aria-label="Opacidade do menu, em porcentagem">
+  <input id="menuOpacityRange" type="range" min="10" max="95" step="5" value="55" aria-label="Opacidade do menu, em porcentagem">
   <output id="menuOpacityValue" for="menuOpacityRange">55%</output>
 </div>
 <div id="toast" class="toast hidden"></div>
@@ -1187,8 +1188,10 @@ firebaseInicializando = iniciarFirebase();
   const key = 'comandas_menu_opacity';
   function apply(value) {
     const n = Number(value);
-    const opacity = Number.isFinite(n) ? Math.max(20, Math.min(95, n)) : 55;
+    const opacity = Number.isFinite(n) ? Math.max(10, Math.min(95, n)) : 55;
     document.documentElement.style.setProperty('--menu-opacity', (opacity / 100).toFixed(2));
+    const menu = document.querySelector('.sidebar');
+    if (menu) menu.style.setProperty('background-color', `rgba(3, 17, 35, ${(opacity / 100).toFixed(2)})`, 'important');
     range.value = String(opacity);
     output.value = opacity + '%';
     output.textContent = opacity + '%';
