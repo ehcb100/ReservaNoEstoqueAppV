@@ -172,7 +172,16 @@ body > .layout, .layout, main, .content, .main-content, .page-content {
   -webkit-backdrop-filter: blur(9px);
   backdrop-filter: blur(9px);
 }
-.sidebar { background-color: rgba(2, 11, 25, .82) !important; }
+/* Menu lateral: vidro oceanico levemente transparente (75% opaco) */
+.sidebar {
+  background: rgba(3, 17, 35, .75) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-right: 1px solid rgba(120, 200, 255, .16);
+}
+.sidebar .nav { transition: background .2s ease, border-color .2s ease; }
+.sidebar .nav:hover { background: rgba(70, 150, 210, .22) !important; }
+.sidebar .nav.active { background: rgba(70, 150, 210, .18) !important; border-color: rgba(120, 200, 255, .24); }
 @media (max-width: 650px) {
   #kyogre-background { background-position: 55% center; }
   .panel, .stat, .card { -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
